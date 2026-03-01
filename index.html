@@ -44,11 +44,23 @@
         <!-- Add coffee shop -->
         <div class="bg-white p-4 rounded-xl shadow mb-6">
             <h2 class="font-semibold mb-2">Add Coffee Shop</h2>
+          
             <input id="shopName" placeholder="Coffee shop name"
-            class="border p-2 mr-2 rounded">
+              class="border p-2 mr-2 rounded">
+          
+            <input id="lat" placeholder="Latitude"
+              class="border p-2 mr-2 rounded">
+          
+            <input id="lng" placeholder="Longitude"
+              class="border p-2 mr-2 rounded">
+          
             <button onclick="addShop()" class="bg-black text-white px-3 py-2 rounded">
-            Add
+              Add
             </button>
+          
+            <p class="text-sm text-gray-500 mt-2">
+              Tip: Click the map to autofill coordinates
+            </p>
         </div>
 
         <!-- Map -->

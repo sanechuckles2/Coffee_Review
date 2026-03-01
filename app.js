@@ -3,6 +3,9 @@ const supabaseKey = "sb_publishable_RMyAFpqjmEeVrvHoaiK8aA_9zYgX_B1";
 
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
+shopMarkers = [];
+reviewMarker = [];
+
 // ----------------------
 // Auth
 // ----------------------
@@ -78,24 +81,42 @@ async function loadShops() {
 
   data.forEach(shop => {
     container.innerHTML += `
-      <div>
-        <b>${shop.name}</b>
-        <button onclick="rate('${shop.id}', 5)">Rate 5</button>
+    <div class="bg-white p-4 rounded-xl shadow">
+      <b>${shop.name}</b>
+      <div class="mt-2">
+        Rate:
+        <button onclick="rate('${shop.id}',1)">⭐</button>
+        <button onclick="rate('${shop.id}',2)">⭐⭐</button>
+        <button onclick="rate('${shop.id}',3)">⭐⭐⭐</button>
+        <button onclick="rate('${shop.id}',4)">⭐⭐⭐⭐</button>
+        <button onclick="rate('${shop.id}',5)">⭐⭐⭐⭐⭐</button>
       </div>
-    `;
+    </div>
+  `;
 
     if (shop.lat && shop.long) {
-        addMarker(shop.lat, shop.long, shop.name);
+        addMarker(shop);
     }
   });
 }
 
 async function addShop() {
     const name = document.getElementById("shopName").value;
+    const lat = parseFloat(document.getElementById("lat").value);
+    const lng = parseFloat(document.getElementById("lng").value);
+  
+    if (!name || !lat || !lng) {
+      alert("Please enter name and select location on the map");
+      return;
+    }
   
     const { error } = await supabaseClient
       .from("Coffee shops")
-      .insert({ name });
+      .insert({
+        name,
+        lat: lat,
+        long: lng
+      });
   
     if (error) {
       alert(error.message);
@@ -103,7 +124,7 @@ async function addShop() {
     }
   
     loadShops();
-  }
+}
 
 // ----------------------
 // Add rating
@@ -133,17 +154,33 @@ async function rate(shopId, rating) {
 let map;
 
 function initMap(lat = 53.3498, lng = -6.2603) {
-  map = L.map("map").setView([lat, lng], 13);
+    map = L.map("map").setView([lat, lng], 13);
+    shopMarkers.forEach(m => map.removeLayer(m));
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "© OpenStreetMap"
-  }).addTo(map);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap"
+    }).addTo(map);
+
+    // Click map to select location
+    map.on("click", function (e) {
+        const { lat, lng } = e.latlng;
+
+        document.getElementById("lat").value = lat.toFixed(12);
+        document.getElementById("lng").value = lng.toFixed(12);
+
+        reviewMarker.forEach(m => map.removeLayer(m));
+
+        //L.marker([lat, lng]).addTo(map);
+        reviewMarker.push(L.marker([lat, lng]).addTo(map));
+    });
 }
 
-function addMarker(lat, lng, name) {
-  L.marker([lat, lng]).addTo(map)
-    .bindPopup(name)
-    .openPopup();
+function addMarker(shop) {
+    const marker =   L.marker([shop.lat, shop.long]).addTo(map)
+    .bindPopup(`
+        <b>${shop.name}</b><br>
+    `);
+    shopMarkers.push(marker);
 }
 
 // ----------------------
