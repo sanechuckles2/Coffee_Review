@@ -1,24 +1,64 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Coffee Ratings</title>
+    <title>Coffee Ratings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
-<body>
+<body class="bg-gray-100 min-h-screen">
 
-<h1>☕ Coffee Ratings</h1>
+    <div class="max-w-4xl mx-auto p-6">
+        <div class="flex justify-between items-center mb-6">
+  
+            <!-- User menu -->
+            <div id="userMenu" class="relative hidden">
+              <button onclick="toggleMenu()"
+                class="bg-white shadow rounded-full w-10 h-10 flex items-center justify-center">
+                👤
+              </button>
+          
+                <div id="dropdown" class="hidden absolute left-0 mt-2 bg-white shadow rounded-lg p-3 w-40">
+                    <p id="userEmail" class="text-sm text-gray-500 mb-2"></p>
+                    <button onclick="logout()"
+                        class="w-full text-left text-red-500 hover:bg-gray-100 p-2 rounded">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        
+            <div id="authCard" class="bg-white p-4 rounded-xl shadow mb-6">
+                <h2 class="font-semibold mb-2">Login</h2>
+                <input id="email" placeholder="Email"
+                  class="border p-2 mr-2 rounded">
+                <input id="password" type="password" placeholder="Password"
+                  class="border p-2 mr-2 rounded">
+                <button onclick="signup()" class="bg-blue-500 text-white px-3 py-2 rounded">Sign up</button>
+                <button onclick="login()" class="bg-green-500 text-white px-3 py-2 rounded">Login</button>
+            </div>
+        </div>
 
-<div id="auth">
-  <input id="email" placeholder="email">
-  <input id="password" type="password" placeholder="password">
-  <button onclick="signup()">Sign up</button>
-  <button onclick="login()">Login</button>
-</div>
+        <h1 class="text-3xl font-bold mb-4">☕ Coffee Ratings</h1>
 
-<h2>Coffee Shops</h2>
-<div id="shops"></div>
+        <!-- Add coffee shop -->
+        <div class="bg-white p-4 rounded-xl shadow mb-6">
+            <h2 class="font-semibold mb-2">Add Coffee Shop</h2>
+            <input id="shopName" placeholder="Coffee shop name"
+            class="border p-2 mr-2 rounded">
+            <button onclick="addShop()" class="bg-black text-white px-3 py-2 rounded">
+            Add
+            </button>
+        </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script src="app.js"></script>
+        <!-- Map -->
+        <div id="map" class="h-96 rounded-xl shadow mb-6"></div>
 
+        <!-- Coffee shops list -->
+        <div id="shops" class="grid gap-4"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
