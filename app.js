@@ -150,8 +150,10 @@ function addMarker(lat, lng, name) {
 // Initialize
 // ----------------------
 
-checkUser();
-loadShops();
-navigator.geolocation.getCurrentPosition(pos => {
-    initMap(pos.coords.latitude, pos.coords.longitude);
+window.addEventListener("load", () => {
+    navigator.geolocation.getCurrentPosition(pos => {
+        initMap(pos.coords.latitude, pos.coords.longitude);
+    });
+    checkUser();
+    loadShops();
 });
