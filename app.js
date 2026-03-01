@@ -3,8 +3,8 @@ const supabaseKey = "sb_publishable_RMyAFpqjmEeVrvHoaiK8aA_9zYgX_B1";
 
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-shopMarkers = [];
-reviewMarker = [];
+let shopMarkers = [];
+let reviewMarker = [];
 
 // ----------------------
 // Auth
@@ -176,10 +176,12 @@ function initMap(lat = 53.3498, lng = -6.2603) {
 }
 
 function addMarker(shop) {
-    const marker =   L.marker([shop.lat, shop.long]).addTo(map)
-    .bindPopup(`
-        <b>${shop.name}</b><br>
-    `);
+    if (!map) return;
+
+    const marker = L.marker([shop.lat, shop.long])
+        .addTo(map)
+        .bindPopup(`<b>${shop.name}</b><br>`);
+
     shopMarkers.push(marker);
 }
 
@@ -187,10 +189,19 @@ function addMarker(shop) {
 // Initialize
 // ----------------------
 
-window.addEventListener("load", () => {
-    navigator.geolocation.getCurrentPosition(pos => {
-        initMap(pos.coords.latitude, pos.coords.longitude);
-    });
-    checkUser();
-    loadShops();
+window.addEventListener("load", async () => {
+
+    initMap();
+
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            initMap(pos.coords.latitude, pos.coords.longitude);
+        },
+        err => {
+            console.log("Geolocation failed, using default location");
+        }
+    );
+
+    await checkUser();
+    await loadShops();
 });
