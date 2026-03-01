@@ -72,32 +72,24 @@ function toggleMenu() {
 // ----------------------
 
 async function loadShops() {
-  const { data } = await supabaseClient
-    .from("Coffee shops")
-    .select("*");
-
-  const container = document.getElementById("shops");
-  container.innerHTML = "";
-
-  data.forEach(shop => {
-    container.innerHTML += `
-    <div class="bg-white p-4 rounded-xl shadow">
-      <b>${shop.name}</b>
-      <div class="mt-2">
-        Rate:
-        <button onclick="rate('${shop.id}',1)">⭐</button>
-        <button onclick="rate('${shop.id}',2)">⭐⭐</button>
-        <button onclick="rate('${shop.id}',3)">⭐⭐⭐</button>
-        <button onclick="rate('${shop.id}',4)">⭐⭐⭐⭐</button>
-        <button onclick="rate('${shop.id}',5)">⭐⭐⭐⭐⭐</button>
-      </div>
-    </div>
-  `;
-
-    if (shop.lat && shop.long) {
+    const { data } = await supabaseClient
+      .from("Coffee shops")
+      .select("*");
+  
+    const container = document.getElementById("shops");
+    container.innerHTML = "";
+  
+    data.forEach(shop => {
+      container.innerHTML += `
+        <div class="shop-card">
+          <h3>${shop.name}</h3>
+        </div>
+      `;
+  
+      if (map && shop.lat && shop.long) {
         addMarker(shop);
-    }
-  });
+      }
+    });
 }
 
 async function addShop() {
@@ -164,13 +156,13 @@ function initMap(lat = 53.3498, lng = -6.2603) {
     // Click map to select location
     map.on("click", function (e) {
         const { lat, lng } = e.latlng;
-
-        document.getElementById("lat").value = lat.toFixed(12);
-        document.getElementById("lng").value = lng.toFixed(12);
-
+      
+        document.getElementById("lat").value = lat;
+        document.getElementById("lng").value = lng;
+      
         reviewMarker.forEach(m => map.removeLayer(m));
-
-        //L.marker([lat, lng]).addTo(map);
+        reviewMarker = [];
+      
         reviewMarker.push(L.marker([lat, lng]).addTo(map));
     });
 }
@@ -191,14 +183,13 @@ function addMarker(shop) {
 
 window.addEventListener("load", async () => {
 
-    initMap();
-
     navigator.geolocation.getCurrentPosition(
         pos => {
             initMap(pos.coords.latitude, pos.coords.longitude);
         },
         err => {
             console.log("Geolocation failed, using default location");
+            initMap();
         }
     );
 
