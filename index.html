@@ -1,76 +1,126 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Coffee Ratings</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coffee Map</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body>
 
-    <div class="max-w-4xl mx-auto p-6">
-        <div class="flex justify-between items-center mb-6">
-  
-            <!-- User menu -->
-            <div id="userMenu" class="relative hidden">
-              <button onclick="toggleMenu()"
-                class="bg-white shadow rounded-full w-10 h-10 flex items-center justify-center">
-                👤
-              </button>
-          
-                <div id="dropdown" class="hidden absolute left-0 mt-2 bg-white shadow rounded-lg p-3 w-40">
-                    <p id="userEmail" class="text-sm text-gray-500 mb-2"></p>
-                    <button onclick="logout()"
-                        class="w-full text-left text-red-500 hover:bg-gray-100 p-2 rounded">
-                        Logout
-                    </button>
-                </div>
-            </div>
-        
-            <div id="authCard" class="bg-white p-4 rounded-xl shadow mb-6">
-                <h2 class="font-semibold mb-2">Login</h2>
-                <input id="email" placeholder="Email"
-                  class="border p-2 mr-2 rounded">
-                <input id="password" type="password" placeholder="Password"
-                  class="border p-2 mr-2 rounded">
-                <button onclick="signup()" class="bg-blue-500 text-white px-3 py-2 rounded">Sign up</button>
-                <button onclick="login()" class="bg-green-500 text-white px-3 py-2 rounded">Login</button>
-            </div>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a class="logo" href="#">
+        <span class="logo-mark">☕</span>
+        <span class="logo-text">Coffee Map</span>
+      </a>
+      <div class="header-right">
+        <div id="authActions" class="header-auth">
+          <button class="btn btn-ghost-light" onclick="openModal('loginModal')">Sign in</button>
+          <button class="btn btn-light" onclick="openModal('signupModal')">Sign up</button>
         </div>
-
-        <h1 class="text-3xl font-bold mb-4">☕ Coffee Ratings</h1>
-
-        <!-- Add coffee shop -->
-        <div class="bg-white p-4 rounded-xl shadow mb-6">
-            <h2 class="font-semibold mb-2">Add Coffee Shop</h2>
-          
-            <input id="shopName" placeholder="Coffee shop name"
-              class="border p-2 mr-2 rounded">
-          
-            <input id="lat" placeholder="Latitude"
-              class="border p-2 mr-2 rounded">
-          
-            <input id="lng" placeholder="Longitude"
-              class="border p-2 mr-2 rounded">
-          
-            <button onclick="addShop()" class="bg-black text-white px-3 py-2 rounded">
-                Add
+        <div id="userMenu" class="header-user hidden">
+          <button class="btn btn-light" onclick="openModal('addShopModal')">+ Add shop</button>
+          <div class="avatar-wrap">
+            <button class="avatar" id="avatarBtn" onclick="toggleDropdown()">
+              <span id="avatarInitial">?</span>
             </button>
-          
-            <p class="text-sm text-gray-500 mt-2">
-              Tip: Click the map to autofill coordinates
-            </p>
+            <div id="dropdown" class="dropdown hidden">
+              <p id="userEmail" class="dropdown-email"></p>
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-item danger" onclick="logout()">Sign out</button>
+            </div>
+          </div>
         </div>
-
-        <!-- Map -->
-        <div id="map" class="h-96 rounded-xl shadow mb-6"></div>
-
-        <!-- Coffee shops list -->
-        <div id="shops" class="grid gap-4"></div>
+      </div>
     </div>
+  </header>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <script src="app.js"></script>
+  <!-- Pin mode banner (shown when placing a pin) -->
+  <div id="pinBanner" class="pin-banner hidden">
+    <span>📍 Click anywhere on the map to set the shop location</span>
+    <button onclick="cancelPinMode()">Cancel</button>
+  </div>
+
+  <!-- Map -->
+  <div id="map"></div>
+
+  <!-- Shops -->
+  <section class="content">
+    <div class="content-header">
+      <h2 class="section-title">Coffee shops</h2>
+      <span id="shopCount" class="shop-count"></span>
+    </div>
+    <div id="shops" class="shops-grid"></div>
+    <div id="emptyState" class="empty-state hidden">
+      <div class="empty-icon">☕</div>
+      <p class="empty-title">No shops yet</p>
+      <p class="empty-sub">Be the first to add a coffee shop to the map.</p>
+      <button class="btn btn-primary" onclick="openModal('addShopModal')">Add a shop</button>
+    </div>
+  </section>
+
+  <!-- Login modal -->
+  <div id="loginModal" class="modal-backdrop hidden" onclick="backdropClose(event,'loginModal')">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+      <h2 class="modal-title">Welcome back</h2>
+      <p class="modal-sub">Sign in to rate shops and add new ones</p>
+      <label class="field-label" for="loginEmail">Email</label>
+      <input id="loginEmail" type="email" class="field-input" placeholder="you@example.com">
+      <label class="field-label" for="loginPassword">Password</label>
+      <input id="loginPassword" type="password" class="field-input" placeholder="Your password">
+      <div id="loginError" class="field-error hidden"></div>
+      <button class="btn btn-primary btn-block" onclick="login()">Sign in</button>
+      <p class="modal-switch">No account? <a onclick="switchModal('loginModal','signupModal')">Sign up</a></p>
+    </div>
+  </div>
+
+  <!-- Signup modal -->
+  <div id="signupModal" class="modal-backdrop hidden" onclick="backdropClose(event,'signupModal')">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('signupModal')">✕</button>
+      <h2 class="modal-title">Join Coffee Map</h2>
+      <p class="modal-sub">Track and rate your favourite local spots</p>
+      <label class="field-label" for="signupEmail">Email</label>
+      <input id="signupEmail" type="email" class="field-input" placeholder="you@example.com">
+      <label class="field-label" for="signupPassword">Password</label>
+      <input id="signupPassword" type="password" class="field-input" placeholder="Min. 6 characters">
+      <div id="signupError" class="field-error hidden"></div>
+      <button class="btn btn-primary btn-block" onclick="signup()">Create account</button>
+      <p class="modal-switch">Have an account? <a onclick="switchModal('signupModal','loginModal')">Sign in</a></p>
+    </div>
+  </div>
+
+  <!-- Add Shop modal -->
+  <div id="addShopModal" class="modal-backdrop hidden" onclick="backdropClose(event,'addShopModal')">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('addShopModal')">✕</button>
+      <h2 class="modal-title">Add a shop</h2>
+      <p class="modal-sub">Pin the location on the map, then give it a name</p>
+
+      <div class="pin-row">
+        <div id="coordDisplay" class="coord-display coord-empty">No location set</div>
+        <button class="btn btn-outline" onclick="startPinMode()">📍 Pin on map</button>
+      </div>
+
+      <label class="field-label" for="shopName">Shop name</label>
+      <input id="shopName" type="text" class="field-input" placeholder="e.g. 3fe Coffee">
+      <div id="addShopError" class="field-error hidden"></div>
+      <button class="btn btn-primary btn-block" onclick="addShop()">Add shop</button>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
