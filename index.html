@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
   <title>Coffee Map</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -59,23 +59,63 @@
     <button onclick="cancelPinMode()">Cancel</button>
   </div>
 
-  <!-- Map -->
-  <div id="map"></div>
+  <!-- Mobile account modal: name + sign out, opened from the Account tab -->
+  <div id="mobileAccountSheet" class="modal-backdrop hidden" onclick="backdropClose(event,'mobileAccountSheet')">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('mobileAccountSheet')">✕</button>
+      <h2 class="modal-title">Account</h2>
+      <p id="userNameMobile" class="modal-sub"></p>
+      <button class="btn btn-primary btn-block" onclick="logout()">Sign out</button>
 
-  <!-- Shops -->
-  <section class="content">
-    <div class="content-header">
-      <h2 class="section-title">Coffee shops</h2>
-      <span id="shopCount" class="shop-count"></span>
+      <div id="accountSwitchSection" class="hidden">
+        <div class="dropdown-divider"></div>
+        <p class="rate-label">Switch account</p>
+        <div id="accountSwitchList" class="picker-list"></div>
+      </div>
     </div>
-    <div id="shops" class="shops-grid"></div>
-    <div id="emptyState" class="empty-state hidden">
-      <div class="empty-icon">☕</div>
-      <p class="empty-title">No shops yet</p>
-      <p class="empty-sub">Be the first to add a coffee shop to the map.</p>
-      <button class="btn btn-primary" onclick="openModal('addShopModal')">Add a shop</button>
-    </div>
-  </section>
+  </div>
+
+  <!-- Explore: shop list + map -->
+  <div class="explore">
+    <section id="listPane" class="list-pane">
+      <div class="content-header">
+        <h2 class="section-title">Coffee shops</h2>
+        <span id="shopCount" class="shop-count"></span>
+      </div>
+      <input id="shopSearch" type="text" class="field-input search-input" placeholder="Search shops..."
+        oninput="filterShops(this.value)">
+      <div id="shops" class="shops-list"></div>
+      <p id="noSearchResults" class="no-results hidden">No shops match your search.</p>
+      <div id="emptyState" class="empty-state hidden">
+        <div class="empty-icon">☕</div>
+        <p class="empty-title">No shops yet</p>
+        <p class="empty-sub">Be the first to add a coffee shop to the map.</p>
+        <button class="btn btn-primary" onclick="openModal('addShopModal')">Add a shop</button>
+      </div>
+    </section>
+
+    <section id="mapPane" class="map-pane active">
+      <div id="map"></div>
+    </section>
+  </div>
+
+  <!-- Mobile tab bar: List / Map / Add / Account -->
+  <nav class="mobile-tabs">
+    <button class="tab-btn" data-tab="list" onclick="switchTab('list')">
+      <span class="tab-icon">☰</span><span class="tab-label">List</span>
+    </button>
+    <button class="tab-btn active" data-tab="map" onclick="switchTab('map')">
+      <span class="tab-icon">🗺</span><span class="tab-label">Map</span>
+    </button>
+    <button class="tab-btn" onclick="mobileAddShop()">
+      <span class="tab-icon">+</span><span class="tab-label">Add</span>
+    </button>
+    <button class="tab-btn" onclick="mobileAccountTap()">
+      <span id="mobileAccountIcon" class="tab-icon">👤</span>
+      <span id="mobileAccountAvatar" class="tab-avatar hidden"></span>
+      <span class="tab-label">Account</span>
+    </button>
+  </nav>
 
   <!-- Who are you? picker modal -->
   <div id="pickerModal" class="modal-backdrop hidden" onclick="backdropClose(event,'pickerModal')">
@@ -115,17 +155,48 @@
     </div>
   </div>
 
-  <!-- Add Shop modal -->
-  <div id="addShopModal" class="modal-backdrop hidden" onclick="backdropClose(event,'addShopModal')">
+  <!-- Shop detail / review modal -->
+  <div id="shopDetailModal" class="modal-backdrop hidden" onclick="backdropClose(event,'shopDetailModal')">
     <div class="modal">
-      <button class="modal-close" onclick="closeModal('addShopModal')">✕</button>
-      <h2 class="modal-title">Add a shop</h2>
-      <p class="modal-sub">Pin the location on the map, then give it a name</p>
+      <button class="modal-close" onclick="closeModal('shopDetailModal')">✕</button>
 
+      <div class="shop-card-top">
+        <h2 id="detailShopName" class="modal-title"></h2>
+        <span id="detailAvgBadge" class="avg-badge hidden">
+          <span class="star-icon">★</span><span id="detailAvgValue"></span>
+        </span>
+        <span id="detailNoRating" class="no-rating-text hidden">No ratings yet</span>
+      </div>
+      <p id="detailReviewCount" class="review-count"></p>
+
+      <div class="rate-label">Your rating</div>
+      <div id="detailStars" class="stars hidden"></div>
+      <p id="detailSignInNudge" class="sign-in-nudge hidden">
+        <a onclick="closeModal('shopDetailModal'); openPicker()">Sign in</a> to rate this shop
+      </p>
+    </div>
+  </div>
+
+  <!-- Add Shop modal -->
+  <div id="addShopModal" class="modal-backdrop hidden" onclick="backdropClose(event,'addShopModal',closeAddShopModal)">
+    <div class="modal">
+      <button class="modal-close" onclick="closeAddShopModal()">✕</button>
+      <h2 class="modal-title">Add a shop</h2>
+      <p class="modal-sub">Search for it, pin your location, or tap the map</p>
+
+      <div class="search-row">
+        <input id="shopSearchQuery" type="text" class="field-input" placeholder="Search for a place..."
+          onkeydown="if(event.key==='Enter'){event.preventDefault(); searchPlaces();}">
+        <button class="btn btn-outline" onclick="searchPlaces()">Search</button>
+      </div>
+      <div id="placeResults" class="place-results hidden"></div>
+
+      <div id="pinPreviewMap" class="pin-preview-map hidden"></div>
       <div class="pin-row">
         <div id="coordDisplay" class="coord-display coord-empty">No location set</div>
         <button class="btn btn-outline" onclick="startPinMode()">📍 Pin on map</button>
       </div>
+      <button id="pinMyLocationBtn" class="btn btn-outline btn-block" onclick="pinMyLocation()">📍 Use my current location</button>
 
       <label class="field-label" for="shopName">Shop name</label>
       <input id="shopName" type="text" class="field-input" placeholder="e.g. 3fe Coffee">
