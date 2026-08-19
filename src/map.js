@@ -10,6 +10,31 @@ let pinMode = false;
 let selectedLat = null;
 let selectedLng = null;
 
+const NAME_LABEL_ZOOM = 16;
+const MOBILE_BREAKPOINT = "(max-width: 900px)";
+
+const MARKER_ICON_HTML =
+  '<div class="coffee-marker-pill">' +
+  '<span class="coffee-marker-icon">☕</span>' +
+  '<span class="coffee-marker-name"></span>' +
+  "</div>";
+
+// Mirrors the app's own mobile breakpoint rather than checking for touch
+// hardware, so it also behaves correctly when testing by resizing a desktop
+// browser window instead of on a real device.
+function isMobileViewport() {
+  return window.matchMedia(MOBILE_BREAKPOINT).matches;
+}
+
+function updateNameVisibility() {
+  if (!map) return;
+  const show = isMobileViewport() && map.getZoom() >= NAME_LABEL_ZOOM;
+  shopMarkers.forEach((m) => {
+    const el = m.getElement();
+    if (el) el.classList.toggle("show-name", show);
+  });
+}
+
 export function getSelectedLocation() {
   return { lat: selectedLat, lng: selectedLng };
 }
@@ -22,6 +47,11 @@ export function initMap(lat = 53.3498, lng = -6.2603) {
     subdomains: "abcd",
     maxZoom: 19
   }).addTo(map);
+
+  // On mobile there's no hover, so name labels only appear once zoomed in
+  // enough to not clutter the map.
+  map.on("zoomend", updateNameVisibility);
+  window.addEventListener("resize", updateNameVisibility);
 
   map.on("click", function (e) {
     if (!pinMode) return;
@@ -48,9 +78,25 @@ export function clearShopMarkers() {
 export function addMarker(shop) {
   if (!map) return;
 
-  const marker = L.marker([shop.lat, shop.long]).addTo(map);
+  const icon = L.divIcon({
+    className: "coffee-marker",
+    html: MARKER_ICON_HTML,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15]
+  });
+
+  const marker = L.marker([shop.lat, shop.long], { icon }).addTo(map);
   marker.on("click", () => openShopDetail(shop));
   shopMarkers.push(marker);
+
+  // Set via innerText (not baked into the icon HTML above) to avoid
+  // rendering a raw shop name as HTML.
+  const nameEl = marker.getElement()?.querySelector(".coffee-marker-name");
+  if (nameEl) nameEl.innerText = shop.name;
+
+  if (isMobileViewport() && map.getZoom() >= NAME_LABEL_ZOOM) {
+    marker.getElement()?.classList.add("show-name");
+  }
 }
 
 export function startPinMode() {

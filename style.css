@@ -279,21 +279,64 @@ body {
 
 .tab-btn.active { color: var(--roast); }
 
-/* Custom Leaflet popup */
-.leaflet-popup-content-wrapper {
-  border-radius: var(--radius) !important;
-  box-shadow: var(--shadow-md) !important;
-  font-family: 'DM Sans', sans-serif !important;
-  border: 1px solid var(--border);
+/* Custom shop marker: a coffee-cup circle that expands into a name pill
+   on hover (desktop) or once zoomed in enough (mobile, via .show-name). */
+.coffee-marker {
+  position: relative;
+  width: 30px;
+  height: 30px;
 }
-.leaflet-popup-content {
+
+.coffee-marker-pill {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: var(--roast);
+  border: 2px solid var(--white);
+  box-shadow: var(--shadow-md);
+  border-radius: 50%;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-radius .15s ease;
+}
+
+.coffee-marker-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.coffee-marker-name {
+  display: none;
   font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--white);
+  padding: 0 12px;
 }
-.leaflet-popup-content strong {
-  font-family: 'Fraunces', serif;
-  font-size: 14px;
+
+.coffee-marker-pill:hover,
+.coffee-marker.show-name .coffee-marker-pill {
+  width: auto;
+  height: 28px;
+  border-radius: 100px;
+  padding: 0 2px;
+}
+
+.coffee-marker-pill:hover .coffee-marker-icon,
+.coffee-marker.show-name .coffee-marker-icon {
+  display: none;
+}
+
+.coffee-marker-pill:hover .coffee-marker-name,
+.coffee-marker.show-name .coffee-marker-name {
+  display: inline-block;
 }
 
 /* ---- Shop list header ---- */
