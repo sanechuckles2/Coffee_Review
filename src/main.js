@@ -11,8 +11,9 @@ import {
   checkSession
 } from "./people.js";
 import { map, initMap, startPinMode, cancelPinMode } from "./map.js";
-import { loadShops, addShop } from "./shops.js";
+import { loadShops, addShop, filterShops } from "./shops.js";
 import { rate } from "./reviews.js";
+import { switchTab } from "./ui/tabs.js";
 
 // Referenced by inline onclick/onkeydown attributes in index.html.
 Object.assign(window, {
@@ -31,7 +32,9 @@ Object.assign(window, {
   startPinMode,
   cancelPinMode,
   addShop,
-  rate
+  filterShops,
+  rate,
+  switchTab
 });
 
 applyGateState();

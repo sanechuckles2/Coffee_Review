@@ -1,4 +1,5 @@
 import { openModal, closeModal } from "./ui/modal.js";
+import { openShopDetail } from "./shopDetail.js";
 
 export let map = null;
 
@@ -16,8 +17,10 @@ export function getSelectedLocation() {
 export function initMap(lat = 53.3498, lng = -6.2603) {
   map = L.map("map").setView([lat, lng], 13);
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "© OpenStreetMap"
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: "abcd",
+    maxZoom: 19
   }).addTo(map);
 
   map.on("click", function (e) {
@@ -45,10 +48,8 @@ export function clearShopMarkers() {
 export function addMarker(shop) {
   if (!map) return;
 
-  const popupEl = document.createElement("b");
-  popupEl.innerText = shop.name;
-
-  const marker = L.marker([shop.lat, shop.long]).addTo(map).bindPopup(popupEl);
+  const marker = L.marker([shop.lat, shop.long]).addTo(map);
+  marker.on("click", () => openShopDetail(shop));
   shopMarkers.push(marker);
 }
 
