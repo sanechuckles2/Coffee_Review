@@ -1,4 +1,5 @@
 import { openModal, closeModal } from "./ui/modal.js";
+import { showToast } from "./ui/toast.js";
 import { openShopDetail } from "./shopDetail.js";
 
 export let map = null;
@@ -9,6 +10,9 @@ let pinMode = false;
 
 let selectedLat = null;
 let selectedLng = null;
+
+let previewMap = null;
+let previewMarker = [];
 
 const NAME_LABEL_ZOOM = 16;
 const MOBILE_BREAKPOINT = "(max-width: 900px)";
@@ -39,8 +43,92 @@ export function getSelectedLocation() {
   return { lat: selectedLat, lng: selectedLng };
 }
 
+// Shared by manual map clicks, "use my location," and search-result picks.
+export function setSelectedLocation(lat, lng) {
+  selectedLat = lat;
+  selectedLng = lng;
+
+  const coordDisplay = document.getElementById("coordDisplay");
+  coordDisplay.innerText = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+  coordDisplay.classList.remove("coord-empty");
+  coordDisplay.classList.add("coord-set");
+
+  pinMarker.forEach((m) => map.removeLayer(m));
+  pinMarker = [L.marker([lat, lng]).addTo(map)];
+
+  showPinPreview(lat, lng);
+}
+
+// Clears any in-progress location selection, e.g. when the add-shop modal
+// is cancelled rather than submitted.
+export function clearSelectedLocation() {
+  selectedLat = null;
+  selectedLng = null;
+
+  const coordDisplay = document.getElementById("coordDisplay");
+  coordDisplay.innerText = "No location set";
+  coordDisplay.classList.add("coord-empty");
+  coordDisplay.classList.remove("coord-set");
+
+  pinMarker.forEach((m) => map.removeLayer(m));
+  pinMarker = [];
+
+  previewMarker.forEach((m) => previewMap && previewMap.removeLayer(m));
+  previewMarker = [];
+  document.getElementById("pinPreviewMap").classList.add("hidden");
+}
+
+// Small non-interactive map inside the add-shop modal so you can confirm
+// the pin without the modal covering the real map underneath it.
+function showPinPreview(lat, lng) {
+  const previewEl = document.getElementById("pinPreviewMap");
+  previewEl.classList.remove("hidden");
+
+  if (!previewMap) {
+    previewMap = L.map("pinPreviewMap", {
+      zoomControl: false,
+      dragging: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      boxZoom: false,
+      keyboard: false,
+      touchZoom: false,
+      attributionControl: false
+    });
+
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+      subdomains: "abcd",
+      maxZoom: 19
+    }).addTo(previewMap);
+  }
+
+  previewMap.setView([lat, lng], 16);
+
+  previewMarker.forEach((m) => previewMap.removeLayer(m));
+  previewMarker = [L.marker([lat, lng]).addTo(previewMap)];
+
+  // The container may have just been unhidden, so its size wasn't known
+  // when the map/tiles were first laid out.
+  setTimeout(() => previewMap.invalidateSize(), 0);
+}
+
+export function pinMyLocation() {
+  if (!map) return;
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const { latitude, longitude } = pos.coords;
+      setSelectedLocation(latitude, longitude);
+      map.setView([latitude, longitude], 16);
+    },
+    () => {
+      showToast("Couldn't get your location");
+    }
+  );
+}
+
 export function initMap(lat = 53.3498, lng = -6.2603) {
-  map = L.map("map").setView([lat, lng], 13);
+  map = L.map("map", { zoomControl: false }).setView([lat, lng], 13);
 
   L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
@@ -53,19 +141,16 @@ export function initMap(lat = 53.3498, lng = -6.2603) {
   map.on("zoomend", updateNameVisibility);
   window.addEventListener("resize", updateNameVisibility);
 
+  // #map's size now comes from flex layout rather than a fixed calc(), so
+  // Leaflet can init before that layout settles (e.g. late font reflow) and
+  // never repaint correctly. Re-measure whenever the container's actual box
+  // size changes instead of guessing at timing.
+  new ResizeObserver(() => map.invalidateSize()).observe(document.getElementById("map"));
+
   map.on("click", function (e) {
     if (!pinMode) return;
 
-    const { lat, lng } = e.latlng;
-
-    document.getElementById("coordDisplay").innerHTML = `${lat.toFixed(5)},${lng.toFixed(5)}`;
-
-    selectedLat = lat;
-    selectedLng = lng;
-
-    pinMarker.forEach((m) => map.removeLayer(m));
-    pinMarker = [L.marker([lat, lng]).addTo(map)];
-
+    setSelectedLocation(e.latlng.lat, e.latlng.lng);
     cancelPinMode();
   });
 }

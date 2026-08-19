@@ -11,8 +11,8 @@ export function switchModal(a, b) {
   openModal(b);
 }
 
-export function backdropClose(e, id) {
+export function backdropClose(e, id, onClose) {
   if (e.target.id === id) {
-    closeModal(id);
+    (onClose || closeModal)(id);
   }
 }

@@ -1,7 +1,7 @@
 import { supabaseClient } from "./supabaseClient.js";
 import { closeModal } from "./ui/modal.js";
 import { showToast } from "./ui/toast.js";
-import { map, addMarker, clearShopMarkers, getSelectedLocation } from "./map.js";
+import { map, addMarker, clearShopMarkers, getSelectedLocation, clearSelectedLocation } from "./map.js";
 import { loadReviewStats, getStats } from "./reviews.js";
 import { openShopDetail } from "./shopDetail.js";
 
@@ -118,6 +118,7 @@ export async function addShop() {
   });
 
   nameInput.value = "";
+  clearSelectedLocation();
   closeModal("addShopModal");
   showToast("Shop added");
   loadShops();

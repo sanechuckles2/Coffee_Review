@@ -8,6 +8,11 @@ const PIN_PATTERN = /^\d{6}$/;
 
 let peopleCache = [];
 let selectedPerson = null;
+let currentPerson = null;
+
+export function getCurrentPerson() {
+  return currentPerson;
+}
 
 function slugify(name) {
   return name
@@ -74,6 +79,35 @@ export function showNewPersonForm() {
 export async function openPicker() {
   await loadPeople();
   showPickerView("pickerList");
+  openModal("pickerModal");
+}
+
+export async function openAccountModal() {
+  await loadPeople();
+  renderAccountSwitchList();
+  openModal("mobileAccountSheet");
+}
+
+function renderAccountSwitchList() {
+  const others = peopleCache.filter((p) => !currentPerson || p.id !== currentPerson.id);
+
+  document.getElementById("accountSwitchSection").classList.toggle("hidden", others.length === 0);
+
+  const list = document.getElementById("accountSwitchList");
+  list.innerHTML = "";
+
+  others.forEach((person) => {
+    const btn = document.createElement("button");
+    btn.className = "picker-person";
+    btn.innerText = person.display_name;
+    btn.onclick = () => switchToPerson(person.id);
+    list.appendChild(btn);
+  });
+}
+
+function switchToPerson(personId) {
+  closeModal("mobileAccountSheet");
+  selectPerson(personId);
   openModal("pickerModal");
 }
 
@@ -171,10 +205,18 @@ export async function checkSession() {
 }
 
 function showUserMenu(person) {
+  currentPerson = person;
+  const initial = person.display_name[0].toUpperCase();
+
   document.getElementById("authActions").classList.add("hidden");
   document.getElementById("userMenu").classList.remove("hidden");
   document.getElementById("userName").innerText = person.display_name;
-  document.getElementById("avatarInitial").innerText = person.display_name[0].toUpperCase();
+  document.getElementById("avatarInitial").innerText = initial;
+
+  document.getElementById("mobileAccountIcon").classList.add("hidden");
+  document.getElementById("mobileAccountAvatar").classList.remove("hidden");
+  document.getElementById("mobileAccountAvatar").innerText = initial;
+  document.getElementById("userNameMobile").innerText = person.display_name;
 }
 
 export function toggleDropdown() {
