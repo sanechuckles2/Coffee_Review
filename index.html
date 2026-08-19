@@ -12,6 +12,19 @@
 </head>
 <body>
 
+  <!-- Site password gate -->
+  <div id="gateScreen" class="gate-screen">
+    <div class="gate-card">
+      <div class="gate-icon">☕</div>
+      <h1 class="gate-title">Coffee Map</h1>
+      <p class="gate-sub">Enter the site password to continue</p>
+      <input id="gatePasswordInput" type="password" class="field-input" placeholder="Site password"
+        onkeydown="if(event.key==='Enter') submitGatePassword()">
+      <div id="gateError" class="field-error hidden"></div>
+      <button class="btn btn-primary btn-block" onclick="submitGatePassword()">Continue</button>
+    </div>
+  </div>
+
   <!-- Header -->
   <header class="header">
     <div class="header-inner">
@@ -21,8 +34,7 @@
       </a>
       <div class="header-right">
         <div id="authActions" class="header-auth">
-          <button class="btn btn-ghost-light" onclick="openModal('loginModal')">Sign in</button>
-          <button class="btn btn-light" onclick="openModal('signupModal')">Sign up</button>
+          <button class="btn btn-light" onclick="openPicker()">Sign in</button>
         </div>
         <div id="userMenu" class="header-user hidden">
           <button class="btn btn-light" onclick="openModal('addShopModal')">+ Add shop</button>
@@ -31,7 +43,7 @@
               <span id="avatarInitial">?</span>
             </button>
             <div id="dropdown" class="dropdown hidden">
-              <p id="userEmail" class="dropdown-email"></p>
+              <p id="userName" class="dropdown-name"></p>
               <div class="dropdown-divider"></div>
               <button class="dropdown-item danger" onclick="logout()">Sign out</button>
             </div>
@@ -65,35 +77,41 @@
     </div>
   </section>
 
-  <!-- Login modal -->
-  <div id="loginModal" class="modal-backdrop hidden" onclick="backdropClose(event,'loginModal')">
+  <!-- Who are you? picker modal -->
+  <div id="pickerModal" class="modal-backdrop hidden" onclick="backdropClose(event,'pickerModal')">
     <div class="modal">
-      <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
-      <h2 class="modal-title">Welcome back</h2>
-      <p class="modal-sub">Sign in to rate shops and add new ones</p>
-      <label class="field-label" for="loginEmail">Email</label>
-      <input id="loginEmail" type="email" class="field-input" placeholder="you@example.com">
-      <label class="field-label" for="loginPassword">Password</label>
-      <input id="loginPassword" type="password" class="field-input" placeholder="Your password">
-      <div id="loginError" class="field-error hidden"></div>
-      <button class="btn btn-primary btn-block" onclick="login()">Sign in</button>
-      <p class="modal-switch">No account? <a onclick="switchModal('loginModal','signupModal')">Sign up</a></p>
-    </div>
-  </div>
+      <button class="modal-close" onclick="closeModal('pickerModal')">✕</button>
 
-  <!-- Signup modal -->
-  <div id="signupModal" class="modal-backdrop hidden" onclick="backdropClose(event,'signupModal')">
-    <div class="modal">
-      <button class="modal-close" onclick="closeModal('signupModal')">✕</button>
-      <h2 class="modal-title">Join Coffee Map</h2>
-      <p class="modal-sub">Track and rate your favourite local spots</p>
-      <label class="field-label" for="signupEmail">Email</label>
-      <input id="signupEmail" type="email" class="field-input" placeholder="you@example.com">
-      <label class="field-label" for="signupPassword">Password</label>
-      <input id="signupPassword" type="password" class="field-input" placeholder="Min. 6 characters">
-      <div id="signupError" class="field-error hidden"></div>
-      <button class="btn btn-primary btn-block" onclick="signup()">Create account</button>
-      <p class="modal-switch">Have an account? <a onclick="switchModal('signupModal','loginModal')">Sign in</a></p>
+      <div id="pickerList">
+        <h2 class="modal-title">Who are you?</h2>
+        <p class="modal-sub">Pick your name to sign in</p>
+        <div id="pickerListItems" class="picker-list"></div>
+        <button class="btn btn-outline btn-block" onclick="showNewPersonForm()">+ New person</button>
+      </div>
+
+      <div id="pickerPin" class="hidden">
+        <button class="picker-back" onclick="backToPickerList()">← Back</button>
+        <h2 class="modal-title">Hi, <span id="pickerPinName"></span></h2>
+        <p class="modal-sub">Enter your PIN</p>
+        <label class="field-label" for="pickerPinInput">PIN</label>
+        <input id="pickerPinInput" type="password" inputmode="numeric" maxlength="6" class="field-input"
+          placeholder="6-digit PIN" onkeydown="if(event.key==='Enter') submitPin()">
+        <div id="pickerPinError" class="field-error hidden"></div>
+        <button class="btn btn-primary btn-block" onclick="submitPin()">Sign in</button>
+      </div>
+
+      <div id="pickerNew" class="hidden">
+        <button class="picker-back" onclick="backToPickerList()">← Back</button>
+        <h2 class="modal-title">New here?</h2>
+        <p class="modal-sub">Pick a name and set a PIN</p>
+        <label class="field-label" for="pickerNewName">Name</label>
+        <input id="pickerNewName" type="text" class="field-input" placeholder="e.g. Will">
+        <label class="field-label" for="pickerNewPin">PIN</label>
+        <input id="pickerNewPin" type="password" inputmode="numeric" maxlength="6" class="field-input"
+          placeholder="Choose a 6-digit PIN" onkeydown="if(event.key==='Enter') submitNewPerson()">
+        <div id="pickerNewError" class="field-error hidden"></div>
+        <button class="btn btn-primary btn-block" onclick="submitNewPerson()">Create &amp; sign in</button>
+      </div>
     </div>
   </div>
 
@@ -121,6 +139,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="app.js"></script>
+  <script type="module" src="src/main.js"></script>
 </body>
 </html>
