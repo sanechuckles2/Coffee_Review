@@ -39,6 +39,15 @@ function updateNameVisibility() {
   });
 }
 
+// Standard OpenStreetMap tiles: busier look than CartoDB/Esri, but no API
+// key, no watermark risk, and full zoom detail everywhere.
+function addBasemap(targetMap) {
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19
+  }).addTo(targetMap);
+}
+
 export function getSelectedLocation() {
   return { lat: selectedLat, lng: selectedLng };
 }
@@ -96,10 +105,7 @@ function showPinPreview(lat, lng) {
       attributionControl: false
     });
 
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-      subdomains: "abcd",
-      maxZoom: 19
-    }).addTo(previewMap);
+    addBasemap(previewMap);
   }
 
   previewMap.setView([lat, lng], 16);
@@ -130,11 +136,7 @@ export function pinMyLocation() {
 export function initMap(lat = 53.3498, lng = -6.2603) {
   map = L.map("map", { zoomControl: false }).setView([lat, lng], 13);
 
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: "abcd",
-    maxZoom: 19
-  }).addTo(map);
+  addBasemap(map);
 
   // On mobile there's no hover, so name labels only appear once zoomed in
   // enough to not clutter the map.
