@@ -58,19 +58,10 @@ function buildShopCard(shop) {
   title.innerText = shop.name;
   top.appendChild(title);
 
-  if (stats.count > 0) {
+  if (stats.avgRating != null) {
     const badge = document.createElement("span");
     badge.className = "avg-badge";
-
-    const starIcon = document.createElement("span");
-    starIcon.className = "star-icon";
-    starIcon.innerText = "★";
-    badge.appendChild(starIcon);
-
-    const value = document.createElement("span");
-    value.innerText = stats.avg.toFixed(1);
-    badge.appendChild(value);
-
+    badge.innerText = `${stats.avgRating.toFixed(1)}/20`;
     top.appendChild(badge);
   } else {
     const noRating = document.createElement("span");
