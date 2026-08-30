@@ -447,8 +447,6 @@ body {
   flex-shrink: 0;
 }
 
-.avg-badge .star-icon { color: var(--amber); font-size: 11px; }
-
 .no-rating-text {
   font-size: 12px;
   color: var(--walnut);
@@ -490,6 +488,50 @@ body {
 .stars .star:hover {
   color: var(--amber);
   transform: scale(1.1);
+}
+
+/* Quarter-star cells: a background (unlit) star with a clipped foreground
+   (lit) star of the same glyph layered on top, width set to the fraction
+   filled. Click position within the cell determines the quarter. */
+.star-cell {
+  position: relative;
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+}
+
+.star-cell .star-bg,
+.star-cell .star-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.star-cell .star-bg { color: #D4CFC9; }
+.star-cell .star-fill { color: var(--amber); }
+
+.michelin-badge {
+  font-size: 15px;
+  color: var(--amber);
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+}
+
+.rating-category-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.rating-category-row .rate-label {
+  margin-bottom: 0;
 }
 
 .user-rated-badge {
@@ -626,6 +668,12 @@ body {
 }
 .field-input:focus { border-color: var(--espresso); }
 .field-input::placeholder { color: var(--walnut); }
+
+textarea.field-input {
+  min-height: 80px;
+  resize: vertical;
+  font-family: 'DM Sans', sans-serif;
+}
 
 .pin-preview-map {
   width: 100%;
@@ -854,6 +902,191 @@ body {
   margin-bottom: 14px;
 }
 .picker-back:hover { color: var(--espresso); }
+
+/* ---- Shop detail page ---- */
+
+.shop-page {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: var(--cream);
+  display: flex;
+  flex-direction: column;
+}
+
+.shop-page-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+}
+
+.shop-page-header .picker-back { margin-bottom: 0; flex-shrink: 0; }
+
+.shop-page-title {
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--espresso);
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shop-page-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 20px 60px;
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.section-title-sm {
+  font-family: 'Fraunces', serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--espresso);
+  margin: 22px 0 12px;
+}
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.review-item {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+.review-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.review-item-name {
+  font-weight: 700;
+  color: var(--espresso);
+  font-size: 14px;
+}
+
+.review-item-rating {
+  font-size: 13px;
+  font-weight: 600;
+  color: #92400E;
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-bd);
+  padding: 2px 9px;
+  border-radius: 100px;
+  flex-shrink: 0;
+}
+
+.review-item-date {
+  font-size: 11px;
+  color: var(--walnut);
+  margin-bottom: 6px;
+}
+
+.review-item-scores {
+  font-size: 12px;
+  color: var(--walnut);
+}
+
+.review-item-michelin {
+  font-size: 13px;
+  color: var(--amber);
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+.review-item-comment {
+  font-size: 13px;
+  color: var(--espresso);
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+.review-item-name-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.review-item-comment-icon { font-size: 13px; }
+
+/* ---- Your review vs. others' average ---- */
+
+#myReviewSummary {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 6px 16px;
+  margin-bottom: 14px;
+}
+
+.compare-row {
+  display: grid;
+  grid-template-columns: 1fr 60px 60px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.compare-row:last-of-type { border-bottom: none; }
+
+.compare-header { padding-bottom: 6px; }
+
+.compare-label {
+  font-size: 13px;
+  color: var(--walnut);
+  font-weight: 500;
+}
+
+/* "You" and "Avg" get their own distinct boxes, not just adjacent numbers,
+   so the two are clearly separate things at a glance. */
+.compare-mine {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--green-text);
+  background: var(--green-bg);
+  border-radius: 8px;
+  padding: 4px 0;
+  text-align: center;
+}
+
+.compare-avg {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--walnut);
+  background: var(--parchment);
+  border-radius: 8px;
+  padding: 4px 0;
+  text-align: center;
+}
+
+.compare-col-label {
+  background: none;
+  padding: 0;
+  color: var(--walnut);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  text-align: center;
+}
+
+.review-item.has-comment { cursor: pointer; }
 
 /* ---- Utilities ---- */
 

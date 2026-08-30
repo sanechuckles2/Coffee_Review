@@ -155,25 +155,61 @@
     </div>
   </div>
 
-  <!-- Shop detail / review modal -->
-  <div id="shopDetailModal" class="modal-backdrop hidden" onclick="backdropClose(event,'shopDetailModal')">
-    <div class="modal">
-      <button class="modal-close" onclick="closeModal('shopDetailModal')">✕</button>
+  <!-- Shop detail page: reviews + rate-it-yourself form -->
+  <div id="shopPage" class="shop-page hidden">
+    <div class="shop-page-header">
+      <button class="picker-back" onclick="closeModal('shopPage')">← Back</button>
+      <h2 id="detailShopName" class="shop-page-title"></h2>
+    </div>
 
+    <div class="shop-page-content">
       <div class="shop-card-top">
-        <h2 id="detailShopName" class="modal-title"></h2>
         <span id="detailAvgBadge" class="avg-badge hidden">
-          <span class="star-icon">★</span><span id="detailAvgValue"></span>
+          <span id="detailAvgValue"></span>
         </span>
         <span id="detailNoRating" class="no-rating-text hidden">No ratings yet</span>
+        <span id="detailMyBadge" class="user-rated-badge hidden">
+          <span id="detailMyValue"></span>
+        </span>
       </div>
       <p id="detailReviewCount" class="review-count"></p>
+      <p id="detailAvgStars" class="michelin-badge hidden"></p>
 
-      <div class="rate-label">Your rating</div>
-      <div id="detailStars" class="stars hidden"></div>
+      <h3 class="section-title-sm">Your review</h3>
+      <div id="myReviewSummary" class="hidden"></div>
+      <button id="reviewFormToggle" class="btn btn-outline btn-block hidden"></button>
+      <div id="detailRatingForm" class="hidden">
+        <div class="rating-category-row">
+          <span class="rate-label">Quality</span>
+          <div id="detailStars_quality" class="stars"></div>
+        </div>
+        <div class="rating-category-row">
+          <span class="rate-label">Price</span>
+          <div id="detailStars_price" class="stars"></div>
+        </div>
+        <div class="rating-category-row">
+          <span class="rate-label">Quirk</span>
+          <div id="detailStars_quirk" class="stars"></div>
+        </div>
+        <div class="rating-category-row">
+          <span class="rate-label">Location</span>
+          <div id="detailStars_location" class="stars"></div>
+        </div>
+        <div class="rating-category-row">
+          <span class="rate-label">Michelin stars</span>
+          <div id="detailStars_stars" class="stars"></div>
+        </div>
+        <label class="field-label" for="reviewComment">Comment (optional)</label>
+        <textarea id="reviewComment" class="field-input" maxlength="500" placeholder="What did you think?"></textarea>
+        <div id="detailRatingError" class="field-error hidden"></div>
+        <button class="btn btn-primary btn-block" onclick="saveRating()">Save rating</button>
+      </div>
       <p id="detailSignInNudge" class="sign-in-nudge hidden">
-        <a onclick="closeModal('shopDetailModal'); openPicker()">Sign in</a> to rate this shop
+        <a onclick="closeModal('shopPage'); openPicker()">Sign in</a> to rate this shop
       </p>
+
+      <h3 class="section-title-sm">Reviews</h3>
+      <div id="reviewsList" class="reviews-list"></div>
     </div>
   </div>
 

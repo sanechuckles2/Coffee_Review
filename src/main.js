@@ -15,7 +15,7 @@ import {
 } from "./people.js";
 import { map, initMap, startPinMode, cancelPinMode, pinMyLocation, clearSelectedLocation } from "./map.js";
 import { loadShops, addShop, filterShops } from "./shops.js";
-import { rate } from "./reviews.js";
+import { saveRating } from "./shopDetail.js";
 import { switchTab } from "./ui/tabs.js";
 import { searchPlaces } from "./places.js";
 
@@ -65,7 +65,7 @@ Object.assign(window, {
   cancelPinMode,
   addShop,
   filterShops,
-  rate,
+  saveRating,
   switchTab,
   mobileAddShop,
   mobileAccountTap,

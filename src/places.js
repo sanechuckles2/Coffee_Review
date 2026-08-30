@@ -1,8 +1,8 @@
 import { map, setSelectedLocation } from "./map.js";
 import { showToast } from "./ui/toast.js";
 
-// OSM category:type combos that count as a "shop" for filtering search results.
-const SHOP_TAGS = new Set([
+// OSM tags to filter to (server-side, via Photon's repeatable osm_tag param).
+const SHOP_TAGS = [
   "amenity:cafe",
   "amenity:restaurant",
   "amenity:fast_food",
@@ -10,11 +10,7 @@ const SHOP_TAGS = new Set([
   "amenity:pub",
   "shop:coffee",
   "shop:bakery"
-]);
-
-function isShopLike(place) {
-  return SHOP_TAGS.has(`${place.category}:${place.type}`);
-}
+];
 
 function getCurrentPositionAsync() {
   return new Promise((resolve) => {
@@ -25,7 +21,7 @@ function getCurrentPositionAsync() {
     navigator.geolocation.getCurrentPosition(
       (pos) => resolve(pos.coords),
       () => resolve(null),
-      { timeout: 4000 }
+      { timeout: 3000, maximumAge: 60000 }
     );
   });
 }
@@ -44,12 +40,23 @@ function formatDistance(km) {
   return km < 1 ? `${Math.round(km * 1000)} m away` : `${km.toFixed(1)} km away`;
 }
 
-async function fetchPlaces(query) {
-  const url =
-    "https://nominatim.openstreetmap.org/search?format=jsonv2&namedetails=1&limit=10&q=" +
-    encodeURIComponent(query);
-  const res = await fetch(url);
-  return res.json();
+function formatAddress(p) {
+  const line1 = [p.housenumber, p.street].filter(Boolean).join(" ");
+  return [line1, p.city, p.state, p.country].filter(Boolean).join(", ");
+}
+
+async function fetchPlaces(query, coords) {
+  const params = new URLSearchParams({ q: query, limit: "8" });
+  SHOP_TAGS.forEach((tag) => params.append("osm_tag", tag));
+
+  if (coords) {
+    params.set("lat", coords.latitude);
+    params.set("lon", coords.longitude);
+  }
+
+  const res = await fetch(`https://photon.komoot.io/api/?${params.toString()}`);
+  const data = await res.json();
+  return data.features || [];
 }
 
 export async function searchPlaces() {
@@ -61,33 +68,35 @@ export async function searchPlaces() {
 
   if (!query) return;
 
-  let rawResults;
+  let features;
   let coords;
   try {
-    [rawResults, coords] = await Promise.all([fetchPlaces(query), getCurrentPositionAsync()]);
+    coords = await getCurrentPositionAsync();
+    features = await fetchPlaces(query, coords);
   } catch {
     showToast("Search failed, try again");
     return;
   }
 
-  let results = (rawResults || []).filter(isShopLike);
-
   if (coords) {
-    results.forEach((place) => {
-      place._distanceKm = distanceKm(coords.latitude, coords.longitude, parseFloat(place.lat), parseFloat(place.lon));
+    features.forEach((f) => {
+      const [lon, lat] = f.geometry.coordinates;
+      f._distanceKm = distanceKm(coords.latitude, coords.longitude, lat, lon);
     });
-    results.sort((a, b) => a._distanceKm - b._distanceKm);
+    features.sort((a, b) => a._distanceKm - b._distanceKm);
   }
 
-  results = results.slice(0, 5);
+  features = features.slice(0, 5);
 
-  if (results.length === 0) {
+  if (features.length === 0) {
     showToast("No shops found");
     return;
   }
 
-  results.forEach((place) => {
-    const shortName = (place.namedetails && place.namedetails.name) || place.display_name.split(",")[0];
+  features.forEach((feature) => {
+    const p = feature.properties;
+    const [lon, lat] = feature.geometry.coordinates;
+    const shortName = p.name || formatAddress(p) || "Unnamed place";
 
     const btn = document.createElement("button");
     btn.className = "place-result";
@@ -102,29 +111,26 @@ export async function searchPlaces() {
 
     const address = document.createElement("span");
     address.className = "place-result-address";
-    address.innerText = place.display_name;
+    address.innerText = formatAddress(p);
     main.appendChild(address);
 
     btn.appendChild(main);
 
-    if (place._distanceKm != null) {
+    if (feature._distanceKm != null) {
       const dist = document.createElement("span");
       dist.className = "place-result-distance";
-      dist.innerText = formatDistance(place._distanceKm);
+      dist.innerText = formatDistance(feature._distanceKm);
       btn.appendChild(dist);
     }
 
-    btn.onclick = () => selectPlace(place, shortName);
+    btn.onclick = () => selectPlace(lat, lon, shortName);
     resultsEl.appendChild(btn);
   });
 
   resultsEl.classList.remove("hidden");
 }
 
-function selectPlace(place, shortName) {
-  const lat = parseFloat(place.lat);
-  const lng = parseFloat(place.lon);
-
+function selectPlace(lat, lng, shortName) {
   setSelectedLocation(lat, lng);
   map.setView([lat, lng], 17);
 
