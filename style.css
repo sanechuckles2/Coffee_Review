@@ -311,7 +311,6 @@ body {
 /* Custom shop marker: a coffee-cup circle that expands into a name pill
    on hover (desktop) or once zoomed in enough (mobile, via .show-name). */
 .coffee-marker {
-  position: relative;
   width: 30px;
   height: 30px;
 }
